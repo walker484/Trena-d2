@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Compacto</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+  body { display: flex; height: 100vh; overflow: hidden; }
+
+  /* ✅ PAINEL PEQUENO */
+  .painel {
+    width: 260px;
+    background: #f5f5f5;
+    padding: 12px;
+    border-right: 2px solid #ccc;
+    flex-shrink: 0;
+    overflow-y: auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .area {
+    flex: 1;
+    background: #fff;
+    position: relative;
+    overflow: auto;
+    background-image: linear-gradient(#f0f0f0 1px, transparent 1px),
+                      linear-gradient(90deg, #f0f0f0 1px, transparent 1px);
+    background-size: 20px 20px;
+    z-index: 2;
+  }
+
+  h2 { color: #333; margin-bottom: 8px; text-align: center; font-size: 15px; }
+
+  button {
+    width: 100%;
+    padding: 8px;
+    margin: 4px 0;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .btn-total { background: #f9d308; color: #000; }
+  .btn-parte { background: #174ea6; color: #fff; }
+  .btn-limpar { background: #c00; color: #fff; margin-top: 8px; }
+
+  label { font-size: 12px; font-weight: bold; color: #444; display: block; margin-top: 6px; }
+  input {
+    width: 100%;
+    padding: 6px;
+    margin: 3px 0;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  #espacoCaixa { margin: 6px 0; min-height: 0; }
+
+  .caixa-medida {
+    background: #fff;
+    border: 3px solid #f9d308;
+    padding: 8px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .caixa-medida label { margin-top: 0; color: #666; font-size: 11px; }
+  .caixa-medida input { border-color: #f9d308; background: #fff8dc; font-weight: bold; font-size: 14px; }
+  .caixa-medida button {
+    background: #eee;
+    color: #666;
+    padding: 4px;
+    margin: 0 0 6px 0;
+    font-size: 11px;
+    font-weight: normal;
+    border-radius: 4px;
+    border: none;
+    width: auto;
+  }
+
+  hr { border: none; border-top: 1px solid #ccc; margin: 8px 0; }
+  .info { font-size: 10px; color: #555; line-height: 1.4; margin: 4px 0; }
+
+  .quadrado-total {
+    position: absolute; border: 4px solid #222; background: #f9f9f9; z-index: 3;
+  }
+  .titulo-total {
+    position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+    font-size: 16px; font-weight: bold; color: #000; white-space: nowrap; z-index: 4;
+  }
+
+  .trena-h {
+    position: absolute; height: 36px; background: #f9d308; border-radius: 4px;
+    border-bottom: 3px solid #d4a800; cursor: pointer; transition: all 0.2s; z-index: 9999;
+  }
+  .trena-h:hover { background: #ffeb3b; transform: scale(1.02); }
+  .trena-h.clicada { background: #ffc107; outline: 3px solid #174ea6; }
+
+  .trena-v {
+    position: absolute; width: 36px; background: #f9d308; border-radius: 4px;
+    border-right: 3px solid #d4a800; cursor: pointer; transition: all 0.2s; z-index: 9999;
+  }
+  .trena-v:hover { background: #ffeb3b; transform: scale(1.02); }
+  .trena-v.clicada { background: #ffc107; outline: 3px solid #174ea6; }
+
+  .marca-h { position: absolute; bottom: 0; width: 1px; background: #000; pointer-events: none; }
+  .marca-v { position: absolute; right: 0; height: 1px; background: #000; pointer-events: none; }
+  .num-trena { position: absolute; font-size: 12px; font-weight: bold; color: #000; pointer-events: none; }
+  .medida-lado {
+    position: absolute; background: #fff; border: 2px solid #f9d308;
+    padding: 3px 8px; font-size: 13px; font-weight: bold; color: #000;
+    border-radius: 4px; white-space: nowrap; pointer-events: none; z-index: 5;
+  }
+
+  .area-parte { position: absolute; background: #d4edda; border: 3px solid #155724; z-index: 8; }
+  .linha-altura { position: absolute; background: #174ea6; z-index: 9; }
+  .ponto-topo {
+    position: absolute; width: 12px; height: 12px; background: #174ea6;
+    border-radius: 50%; border: 2px solid #fff; z-index: 10;
+  }
+  .medida-int {
+    position: absolute; background: #fff; border: 2px solid #155724;
+    padding: 3px 6px; font-size: 12px; font-weight: bold; color: #155724;
+    border-radius: 3px; z-index: 15; white-space: nowrap; pointer-events: none;
+  }
+  .medida-alt { border-color: #174ea6; color: #174ea6; }
+</style>
+</head>
+<body>
+
+<div class="painel">
+  <h2>🏠 Área Total: 10×10m</h2>
+  <button class="btn-total" onclick="criarTotal()">📐 CRIAR ÁREA TOTAL 10×10</button>
+
+  <div id="espacoCaixa"></div>
+
+  <hr>
+
+  <h3 style="font-size:13px; color:#155724;">📍 PARTE INTERNA</h3>
+
+  <label>Largura (m):</label>
+  <input type="number" id="largura" value="2.90" step="0.01">
+
+  <label>Comprimento (m):</label>
+  <input type="number" id="comprimento" value="6.00" step="0.01">
+
+  <label>Altura (m):</label>
+  <input type="number" id="altura" value="3.00" step="0.01">
+
+  <label>Distância da frente:</label>
+  <input type="number" id="distFrente" value="0.00" step="0.01">
+
+  <button class="btn-parte" onclick="criarParte()">✅ DESENHAR PARTE</button>
+
+  <hr>
+
+  <div class="info">
+    ✅ Sem caixa ao abrir<br>
+    ✅ Clica régua → aparece<br>
+    ✅ Esconder → apaga
+  </div>
+
+  <button class="btn-limpar" onclick="limparTudo()">🗑️ Limpar Tudo</button>
+</div>
+
+<div class="area" id="areaDesenho"></div>
+
+<script>
+const ESCALA = 50;
+const TOTAL = 10;
+const X0 = 200;
+const Y0 = 120;
+let trenaClicada = null;
+
+function criarTotal() {
+  limparTudo();
+  const tam = TOTAL * ESCALA;
+
+  const qd = document.createElement('div');
+  qd.className = 'quadrado-total';
+  qd.style.left = X0 + 'px';
+  qd.style.top = Y0 + 'px';
+  qd.style.width = tam + 'px';
+  qd.style.height = tam + 'px';
+  qd.id = 'quadrado-total';
+  document.getElementById('areaDesenho').appendChild(qd);
+
+  const tit = document.createElement('div');
+  tit.className = 'titulo-total';
+  tit.textContent = 'ÁREA TOTAL: 10m × 10m';
+  tit.style.left = X0 + tam/2 - 80 + 'px';
+  tit.style.top = Y0 - 35 + 'px';
+  document.getElementById('areaDesenho').appendChild(tit);
+
+  desenharTrenaH(X0, Y0 - 40, TOTAL, 'CIMA');
+  desenharTrenaH(X0, Y0 + tam, TOTAL, 'FRENTE');
+  desenharTrenaV(X0 - 40, Y0, TOTAL, 'ESQUERDA');
+  desenharTrenaV(X0 + tam, Y0, TOTAL, 'DIREITA');
+
+  adicionarMedida(X0 + tam/2 - 45, Y0 - 70, 'CIMA: 10.00 m');
+  adicionarMedida(X0 + tam/2 - 55, Y0 + tam + 12, 'FRENTE: 10.00 m');
+  adicionarMedida(X0 - 90, Y0 + tam/2 - 10, 'ESQUERDA: 10.00 m');
+  adicionarMedida(X0 + tam + 12, Y0 + tam/2 - 10, 'DIREITA: 10.00 m');
+}
+
+function desenharTrenaH(x, y, metros, nome) {
+  const larg = metros * ESCALA;
+  const trena = document.createElement('div');
+  trena.className = 'trena-h';
+  trena.style.left = x + 'px';
+  trena.style.top = y + 'px';
+  trena.style.width = larg + 'px';
+  trena.dataset.medida = metros.toFixed(2) + ' m';
+  trena.dataset.nome = nome;
+  trena.onclick = function() { clicarTrena(this); };
+  document.getElementById('areaDesenho').appendChild(trena);
+
+  for(let i=1; i<=metros; i++){
+    const pos = x + i * ESCALA;
+    const m = document.createElement('div');
+    m.className = 'marca-h';
+    m.style.left = pos + 'px';
+    m.style.height = i%5===0 ? 12 : 6;
+    document.getElementById('areaDesenho').appendChild(m);
+    if(i%2===0 || i===metros){
+      const n = document.createElement('div');
+      n.className = 'num-trena';
+      n.textContent = i;
+      n.style.left = pos - 9 + 'px';
+      n.style.top = '5px';
+      document.getElementById('areaDesenho').appendChild(n);
+    }
+  }
+}
+
+function desenharTrenaV(x, y, metros, nome) {
+  const alt = metros * ESCALA;
+  const trena = document.createElement('div');
+  trena.className = 'trena-v';
+  trena.style.left = x + 'px';
+  trena.style.top = y + 'px';
+  trena.style.height = alt + 'px';
+  trena.dataset.medida = metros.toFixed(2) + ' m';
+  trena.dataset.nome = nome;
+  trena.onclick = function() { clicarTrena(this); };
+  document.getElementById('areaDesenho').appendChild(trena);
+
+  for(let i=1; i<=metros; i++){
+    const pos = y + i * ESCALA;
+    const m = document.createElement('div');
+    m.className = 'marca-v';
+    m.style.top = pos + 'px';
+    m.style.width = i%5===0 ? 12 : 6;
+    document.getElementById('areaDesenho').appendChild(m);
+    if(i%2===0 || i===metros){
+      const n = document.createElement('div');
+      n.className = 'num-trena';
+      n.textContent = i;
+      n.style.left = '5px';
+      n.style.top = pos - 7 + 'px';
+      document.getElementById('areaDesenho').appendChild(n);
+    }
+  }
+}
+
+function clicarTrena(el) {
+  if (trenaClicada) trenaClicada.classList.remove('clicada');
+  trenaClicada = el;
+  el.classList.add('clicada');
+  const nome = el.dataset.nome;
+  const medida = el.dataset.medida;
+  const espaco = document.getElementById('espacoCaixa');
+  espaco.innerHTML = `
+    <div class="caixa-medida">
+      <button onclick="fecharCaixinha()">✖ Esconder</button>
+      <label>📏 Medida selecionada:</label>
+      <input type="text" readonly value="${nome}: ${medida}">
+    </div>
+  `;
+}
+
+function fecharCaixinha() {
+  document.getElementById('espacoCaixa').innerHTML = '';
+  if (trenaClicada) trenaClicada.classList.remove('clicada');
+  trenaClicada = null;
+}
+
+function adicionarMedida(x, y, texto) {
+  const el = document.createElement('div');
+  el.className = 'medida-lado';
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.textContent = texto;
+  document.getElementById('areaDesenho').appendChild(el);
+}
+
+function criarParte() {
+  if(!document.getElementById('quadrado-total')){
+    alert('Primeiro crie a Área Total 10×10!');
+    return;
+  }
+  document.querySelectorAll('.area-parte, .linha-altura, .ponto-topo, .medida-int').forEach(e=>e.remove());
+  const larg = parseFloat(document.getElementById('largura').value);
+  const comp = parseFloat(document.getElementById('comprimento').value);
+  const alt = parseFloat(document.getElementById('altura').value);
+  const distF = parseFloat(document.getElementById('distFrente').value);
+  const tamTotal = TOTAL * ESCALA;
+  const px = X0 + (TOTAL - comp) * ESCALA / 2;
+  const py = Y0 + tamTotal - distF * ESCALA - larg * ESCALA;
+  const parte = document.createElement('div');
+  parte.className = 'area-parte';
+  parte.style.left = px + 'px';
+  parte.style.top = py + 'px';
+  parte.style.width = comp * ESCALA + 'px';
+  parte.style.height = larg * ESCALA + 'px';
+  document.getElementById('areaDesenho').appendChild(parte);
+  addMedidaInt(px + comp*ESCALA/2 - 50, py - 25, `${comp.toFixed(2)}m × ${larg.toFixed(2)}m`);
+
+  const cantos = [
+    {x: px, y: py},
+    {x: px + comp*ESCALA, y: py},
+    {x: px + comp*ESCALA, y: py + larg*ESCALA},
+    {x: px, y: py + larg*ESCALA}
+  ];
+  cantos.forEach((p, i) => {
+    const topoY = p.y - alt * ESCALA;
+    const linha = document.createElement('div');
+    linha.className = 'linha-altura';
+    linha.style.left = p.x + 'px';
+    linha.style.top = topoY + 'px';
+    linha.style.width = '4px';
+    linha.style.height = p.y - topoY + 'px';
+    document.getElementById('areaDesenho').appendChild(linha);
+    const pt = document.createElement('div');
+    pt.className = 'ponto-topo';
+    pt.style.left = p.x - 6 + 'px';
+    pt.style.top = topoY - 6 + 'px';
+    document.getElementById('areaDesenho').appendChild(pt);
+    if(i === 0){
+      addMedidaAlt(p.x + 12, (p.y + topoY)/2 - 10, `↑ ${alt.toFixed(2)}m`);
+    }
+  });
+}
+
+function addMedidaInt(x, y, texto) {
+  const el = document.createElement('div');
+  el.className = 'medida-int';
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.textContent = texto;
+  document.getElementById('areaDesenho').appendChild(el);
+}
+
+function addMedidaAlt(x, y, texto) {
+  const el = document.createElement('div');
+  el.className = 'medida-int medida-alt';
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.textContent = texto;
+  document.getElementById('areaDesenho').appendChild(el);
+}
+
+function limparTudo() {
+  document.getElementById('areaDesenho').innerHTML = '';
+  fecharCaixinha();
+}
+</script>
+
+</body>
+</html>
