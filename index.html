@@ -3,370 +3,570 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel Compacto</title>
+<title>Projeto Cômodos — Sem Bloqueio</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-  body { display: flex; height: 100vh; overflow: hidden; }
+  body { padding: 15px; background: #f0f0f0; }
 
-  /* ✅ PAINEL PEQUENO */
-  .painel {
-    width: 260px;
-    background: #f5f5f5;
-    padding: 12px;
-    border-right: 2px solid #ccc;
-    flex-shrink: 0;
-    overflow-y: auto;
-    position: relative;
-    z-index: 1;
+  .container { max-width: 480px; margin: 0 auto; }
+  h2 { text-align: center; margin-bottom: 10px; color: #333; }
+
+  .modo-indicador {
+    padding: 6px 12px;
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-bottom: 10px;
+    color: #1565c0;
   }
-
-  .area {
-    flex: 1;
-    background: #fff;
-    position: relative;
-    overflow: auto;
-    background-image: linear-gradient(#f0f0f0 1px, transparent 1px),
-                      linear-gradient(90deg, #f0f0f0 1px, transparent 1px);
-    background-size: 20px 20px;
-    z-index: 2;
-  }
-
-  h2 { color: #333; margin-bottom: 8px; text-align: center; font-size: 15px; }
+  .modo-indicador span { font-weight: bold; }
 
   button {
-    width: 100%;
-    padding: 8px;
-    margin: 4px 0;
+    padding: 10px 14px;
+    font-size: 15px;
     border: none;
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: bold;
+    border-radius: 6px;
     cursor: pointer;
+    font-weight: bold;
+  }
+  .btn-principal { background: #ffcc00; color: #000; width: 100%; margin-bottom: 12px; }
+  .btn-comodo { background: #009933; color: #fff; }
+  .btn-porta { background: #8d6e63; color: #fff; }
+  .btn-janela { background: #03a9f4; color: #fff; }
+  .btn-limpar { background: #cc0000; color: #fff; }
+
+  label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 4px;
+    font-weight: bold;
+    color: #444;
+    font-size: 13px;
   }
 
-  .btn-total { background: #f9d308; color: #000; }
-  .btn-parte { background: #174ea6; color: #fff; }
-  .btn-limpar { background: #c00; color: #fff; margin-top: 8px; }
-
-  label { font-size: 12px; font-weight: bold; color: #444; display: block; margin-top: 6px; }
   input {
     width: 100%;
-    padding: 6px;
-    margin: 3px 0;
+    padding: 8px;
+    font-size: 15px;
     border: 2px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .caixa {
+    position: relative;
+    margin: 15px auto;
+    border: 3px dashed #f44336;
+    background: #f9f9f9;
+    width: 400px;
+    height: 400px;
+    display: none;
+    overflow: hidden;
+  }
+
+  .comodo {
+    position: absolute;
+    border: 3px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: move;
+    z-index: 2;
+    transition: box-shadow 0.15s;
+    border-radius: 6px;
+  }
+
+  .comodo.arrastando {
+    opacity: 0.85;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    z-index: 10;
+  }
+
+  .porta-h {
+    position: absolute;
+    cursor: move;
+    z-index: 6;
+    height: 6px;
+    border-top: 3px solid #5d4037;
+    border-bottom: 1px dashed #8d6e63;
+    background: transparent;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    font-size: 8px;
+    color: #5d4037;
+    font-weight: bold;
+    padding-top: 3px;
+    white-space: nowrap;
+  }
+
+  .porta-v {
+    position: absolute;
+    cursor: move;
+    z-index: 6;
+    width: 6px;
+    border-left: 3px solid #5d4037;
+    border-right: 1px dashed #8d6e63;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: #5d4037;
+    font-weight: bold;
+    padding-left: 3px;
+  }
+
+  .janela-h {
+    position: absolute;
+    cursor: move;
+    z-index: 6;
+    height: 6px;
+    border-top: 2px solid #0288d1;
+    border-bottom: 2px solid #0288d1;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: #0288d1;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+
+  .janela-v {
+    position: absolute;
+    cursor: move;
+    z-index: 6;
+    width: 6px;
+    border-left: 2px solid #0288d1;
+    border-right: 2px solid #0288d1;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: #0288d1;
+    font-weight: bold;
+  }
+
+  .medida {
+    position: absolute;
+    background: #fff;
+    padding: 2px 5px;
+    font-size: 11px;
+    border: 1px solid #333;
+    border-radius: 3px;
+    font-weight: bold;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .aviso {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #e8f5e9;
+    border: 2px solid #4caf50;
+    color: #2e7d32;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    text-align: center;
+    font-size: 12px;
+    z-index: 20;
+    display: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    max-width: 90%;
+  }
+
+  .aviso.erro {
+    background: #ffebee;
+    border-color: #f44336;
+    color: #c62828;
+  }
+
+  .status {
+    padding: 10px;
+    background: #e6f3ff;
+    border-left: 4px solid #0066cc;
+    margin: 8px 0;
     border-radius: 4px;
     font-size: 13px;
   }
 
-  #espacoCaixa { margin: 6px 0; min-height: 0; }
+  .botoes { display: flex; gap: 3%; margin-top: 12px; flex-wrap: wrap; }
+  .botoes button { flex: 1; min-width: 90px; }
+  .abas { display: flex; gap: 5px; margin: 10px 0; }
+  .aba { flex: 1; padding: 8px; border: none; background: #ddd; border-radius: 4px; cursor: pointer; font-weight: bold; }
+  .aba.ativa { background: #0066cc; color: #fff; }
+  .form-secao { display: none; }
+  .form-secao.visivel { display: block; }
 
-  .caixa-medida {
-    background: #fff;
-    border: 3px solid #f9d308;
-    padding: 8px;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-
-  .caixa-medida label { margin-top: 0; color: #666; font-size: 11px; }
-  .caixa-medida input { border-color: #f9d308; background: #fff8dc; font-weight: bold; font-size: 14px; }
-  .caixa-medida button {
-    background: #eee;
-    color: #666;
-    padding: 4px;
-    margin: 0 0 6px 0;
+  .dica-limite {
     font-size: 11px;
-    font-weight: normal;
-    border-radius: 4px;
-    border: none;
-    width: auto;
+    color: #666;
+    margin-top: 4px;
   }
-
-  hr { border: none; border-top: 1px solid #ccc; margin: 8px 0; }
-  .info { font-size: 10px; color: #555; line-height: 1.4; margin: 4px 0; }
-
-  .quadrado-total {
-    position: absolute; border: 4px solid #222; background: #f9f9f9; z-index: 3;
-  }
-  .titulo-total {
-    position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
-    font-size: 16px; font-weight: bold; color: #000; white-space: nowrap; z-index: 4;
-  }
-
-  .trena-h {
-    position: absolute; height: 36px; background: #f9d308; border-radius: 4px;
-    border-bottom: 3px solid #d4a800; cursor: pointer; transition: all 0.2s; z-index: 9999;
-  }
-  .trena-h:hover { background: #ffeb3b; transform: scale(1.02); }
-  .trena-h.clicada { background: #ffc107; outline: 3px solid #174ea6; }
-
-  .trena-v {
-    position: absolute; width: 36px; background: #f9d308; border-radius: 4px;
-    border-right: 3px solid #d4a800; cursor: pointer; transition: all 0.2s; z-index: 9999;
-  }
-  .trena-v:hover { background: #ffeb3b; transform: scale(1.02); }
-  .trena-v.clicada { background: #ffc107; outline: 3px solid #174ea6; }
-
-  .marca-h { position: absolute; bottom: 0; width: 1px; background: #000; pointer-events: none; }
-  .marca-v { position: absolute; right: 0; height: 1px; background: #000; pointer-events: none; }
-  .num-trena { position: absolute; font-size: 12px; font-weight: bold; color: #000; pointer-events: none; }
-  .medida-lado {
-    position: absolute; background: #fff; border: 2px solid #f9d308;
-    padding: 3px 8px; font-size: 13px; font-weight: bold; color: #000;
-    border-radius: 4px; white-space: nowrap; pointer-events: none; z-index: 5;
-  }
-
-  .area-parte { position: absolute; background: #d4edda; border: 3px solid #155724; z-index: 8; }
-  .linha-altura { position: absolute; background: #174ea6; z-index: 9; }
-  .ponto-topo {
-    position: absolute; width: 12px; height: 12px; background: #174ea6;
-    border-radius: 50%; border: 2px solid #fff; z-index: 10;
-  }
-  .medida-int {
-    position: absolute; background: #fff; border: 2px solid #155724;
-    padding: 3px 6px; font-size: 12px; font-weight: bold; color: #155724;
-    border-radius: 3px; z-index: 15; white-space: nowrap; pointer-events: none;
-  }
-  .medida-alt { border-color: #174ea6; color: #174ea6; }
 </style>
 </head>
 <body>
 
-<div class="painel">
-  <h2>🏠 Área Total: 10×10m</h2>
-  <button class="btn-total" onclick="criarTotal()">📐 CRIAR ÁREA TOTAL 10×10</button>
+<div class="container">
+  <h2>🏡 Projeto Cômodos</h2>
 
-  <div id="espacoCaixa"></div>
-
-  <hr>
-
-  <h3 style="font-size:13px; color:#155724;">📍 PARTE INTERNA</h3>
-
-  <label>Largura (m):</label>
-  <input type="number" id="largura" value="2.90" step="0.01">
-
-  <label>Comprimento (m):</label>
-  <input type="number" id="comprimento" value="6.00" step="0.01">
-
-  <label>Altura (m):</label>
-  <input type="number" id="altura" value="3.00" step="0.01">
-
-  <label>Distância da frente:</label>
-  <input type="number" id="distFrente" value="0.00" step="0.01">
-
-  <button class="btn-parte" onclick="criarParte()">✅ DESENHAR PARTE</button>
-
-  <hr>
-
-  <div class="info">
-    ✅ Sem caixa ao abrir<br>
-    ✅ Clica régua → aparece<br>
-    ✅ Esconder → apaga
+  <div class="modo-indicador">
+    📐 Área Total: <strong>10,00m × 10,00m</strong>
   </div>
 
-  <button class="btn-limpar" onclick="limparTudo()">🗑️ Limpar Tudo</button>
+  <div class="status" id="status">
+    👉 Clique em "Criar Área Total" para começar
+  </div>
+
+  <button class="btn-principal" onclick="criarArea()">📐 Criar Área Total 10×10m</button>
+
+  <div id="painel" style="display:none;">
+    <div class="abas">
+      <button class="aba ativa" onclick="mostrarAba('comodo')">🏠 Cômodo</button>
+      <button class="aba" onclick="mostrarAba('porta')">🚪 Porta</button>
+      <button class="aba" onclick="mostrarAba('janela')">🪟 Janela</button>
+    </div>
+
+    <div class="form-secao visivel" id="form-comodo">
+      <label>Nome do Cômodo:</label>
+      <input type="text" id="nome" value="Sala">
+
+      <label>Largura (metros):</label>
+      <input type="number" id="larg" value="3.50" step="0.01" min="0.01">
+
+      <label>Comprimento (metros):</label>
+      <input type="number" id="comp" value="4.20" step="0.01" min="0.01">
+
+      <label>Posição Esquerda (metros):</label>
+      <input type="number" id="posX" value="0.00" step="0.01" min="0">
+
+      <label>Posição de Baixo (metros):</label>
+      <input type="number" id="posY" value="0.00" step="0.01" min="0">
+
+      <div class="dica-limite">
+        ✅ Regra: Esq + Largura ≤ 10,00m &nbsp;|&nbsp; Bai + Comprimento ≤ 10,00m
+      </div>
+
+      <div class="botoes">
+        <button class="btn-comodo" onclick="desenharComodo()">✅ DESENHAR</button>
+        <button class="btn-limpar" onclick="limpar()">🗑️ Limpar Tudo</button>
+      </div>
+    </div>
+
+    <div class="form-secao" id="form-porta">
+      <label>Largura da Porta (metros):</label>
+      <input type="number" id="portaLarg" value="0.80" step="0.01">
+      <div class="botoes">
+        <button class="btn-porta" onclick="criarPorta()">🚪 COLOCAR PORTA</button>
+        <button class="btn-limpar" onclick="limpar()">🗑️ Limpar Tudo</button>
+      </div>
+    </div>
+
+    <div class="form-secao" id="form-janela">
+      <label>Largura da Janela (metros):</label>
+      <input type="number" id="janelaLarg" value="1.50" step="0.01">
+      <div class="botoes">
+        <button class="btn-janela" onclick="criarJanela()">🪟 COLOCAR JANELA</button>
+        <button class="btn-limpar" onclick="limpar()">🗑️ Limpar Tudo</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="caixa" id="caixa">
+    <div style="position:absolute;top:5px;left:50%;transform:translateX(-50%);font-size:13px;font-weight:bold;color:#d32f2f;">📐 ÁREA TOTAL — 10,00m × 10,00m</div>
+    <div class="aviso" id="aviso"></div>
+  </div>
 </div>
 
-<div class="area" id="areaDesenho"></div>
-
 <script>
-const ESCALA = 50;
+const ESCALA = 40;
 const TOTAL = 10;
-const X0 = 200;
-const Y0 = 120;
-let trenaClicada = null;
+let corIndex = 0;
+const cores = ['#4CAF50','#2196F3','#FF9800','#9C27B0','#f44336','#00BCD4','#795548','#607D8B'];
+let listaComodos = [];
 
-function criarTotal() {
-  limparTudo();
-  const tam = TOTAL * ESCALA;
+let arrastando = null;
+let offsetX = 0;
+let offsetY = 0;
 
-  const qd = document.createElement('div');
-  qd.className = 'quadrado-total';
-  qd.style.left = X0 + 'px';
-  qd.style.top = Y0 + 'px';
-  qd.style.width = tam + 'px';
-  qd.style.height = tam + 'px';
-  qd.id = 'quadrado-total';
-  document.getElementById('areaDesenho').appendChild(qd);
-
-  const tit = document.createElement('div');
-  tit.className = 'titulo-total';
-  tit.textContent = 'ÁREA TOTAL: 10m × 10m';
-  tit.style.left = X0 + tam/2 - 80 + 'px';
-  tit.style.top = Y0 - 35 + 'px';
-  document.getElementById('areaDesenho').appendChild(tit);
-
-  desenharTrenaH(X0, Y0 - 40, TOTAL, 'CIMA');
-  desenharTrenaH(X0, Y0 + tam, TOTAL, 'FRENTE');
-  desenharTrenaV(X0 - 40, Y0, TOTAL, 'ESQUERDA');
-  desenharTrenaV(X0 + tam, Y0, TOTAL, 'DIREITA');
-
-  adicionarMedida(X0 + tam/2 - 45, Y0 - 70, 'CIMA: 10.00 m');
-  adicionarMedida(X0 + tam/2 - 55, Y0 + tam + 12, 'FRENTE: 10.00 m');
-  adicionarMedida(X0 - 90, Y0 + tam/2 - 10, 'ESQUERDA: 10.00 m');
-  adicionarMedida(X0 + tam + 12, Y0 + tam/2 - 10, 'DIREITA: 10.00 m');
+function mostrarAba(nome) {
+  document.querySelectorAll('.aba').forEach(b => b.classList.remove('ativa'));
+  document.querySelectorAll('.form-secao').forEach(f => f.classList.remove('visivel'));
+  event.target.classList.add('ativa');
+  document.getElementById(`form-${nome}`).classList.add('visivel');
 }
 
-function desenharTrenaH(x, y, metros, nome) {
-  const larg = metros * ESCALA;
-  const trena = document.createElement('div');
-  trena.className = 'trena-h';
-  trena.style.left = x + 'px';
-  trena.style.top = y + 'px';
-  trena.style.width = larg + 'px';
-  trena.dataset.medida = metros.toFixed(2) + ' m';
-  trena.dataset.nome = nome;
-  trena.onclick = function() { clicarTrena(this); };
-  document.getElementById('areaDesenho').appendChild(trena);
+function criarArea() {
+  document.getElementById('caixa').style.display = 'block';
+  document.getElementById('painel').style.display = 'block';
+  esconderAviso();
+  listaComodos = [];
+  corIndex = 0;
+  document.getElementById('status').innerHTML = '✅ Área pronta! Desenhe quantos cômodos quiser!';
+}
 
-  for(let i=1; i<=metros; i++){
-    const pos = x + i * ESCALA;
-    const m = document.createElement('div');
-    m.className = 'marca-h';
-    m.style.left = pos + 'px';
-    m.style.height = i%5===0 ? 12 : 6;
-    document.getElementById('areaDesenho').appendChild(m);
-    if(i%2===0 || i===metros){
-      const n = document.createElement('div');
-      n.className = 'num-trena';
-      n.textContent = i;
-      n.style.left = pos - 9 + 'px';
-      n.style.top = '5px';
-      document.getElementById('areaDesenho').appendChild(n);
+function mostrarAviso(texto, ehSucesso=false) {
+  const aviso = document.getElementById('aviso');
+  aviso.textContent = texto;
+  aviso.classList.remove('sucesso', 'erro');
+  if (ehSucesso) aviso.classList.add('sucesso');
+  aviso.style.display = 'block';
+  setTimeout(() => { aviso.style.display = 'none'; }, 3000);
+}
+
+function esconderAviso() {
+  document.getElementById('aviso').style.display = 'none';
+}
+
+function encaixarNaParede(px, py) {
+  const margemEncaixe = 0.4;
+  for (let c of listaComodos) {
+    if (Math.abs(px - c.x) < margemEncaixe && py >= c.y - margemEncaixe && py <= c.y + c.comp + margemEncaixe) {
+      return { x: c.x, y: py, orientacao: 'vertical', encaixou: true, mensagem: '✅ Parede esquerda!' };
+    }
+    if (Math.abs(px - (c.x + c.larg)) < margemEncaixe && py >= c.y - margemEncaixe && py <= c.y + c.comp + margemEncaixe) {
+      return { x: c.x + c.larg, y: py, orientacao: 'vertical', encaixou: true, mensagem: '✅ Parede direita!' };
+    }
+    if (Math.abs(py - c.y) < margemEncaixe && px >= c.x - margemEncaixe && px <= c.x + c.larg + margemEncaixe) {
+      return { x: px, y: c.y, orientacao: 'horizontal', encaixou: true, mensagem: '✅ Parede de baixo!' };
+    }
+    if (Math.abs(py - (c.y + c.comp)) < margemEncaixe && px >= c.x - margemEncaixe && px <= c.x + c.larg + margemEncaixe) {
+      return { x: px, y: c.y + c.comp, orientacao: 'horizontal', encaixou: true, mensagem: '✅ Parede de cima!' };
     }
   }
+  return { encaixou: false };
 }
 
-function desenharTrenaV(x, y, metros, nome) {
-  const alt = metros * ESCALA;
-  const trena = document.createElement('div');
-  trena.className = 'trena-v';
-  trena.style.left = x + 'px';
-  trena.style.top = y + 'px';
-  trena.style.height = alt + 'px';
-  trena.dataset.medida = metros.toFixed(2) + ' m';
-  trena.dataset.nome = nome;
-  trena.onclick = function() { clicarTrena(this); };
-  document.getElementById('areaDesenho').appendChild(trena);
-
-  for(let i=1; i<=metros; i++){
-    const pos = y + i * ESCALA;
-    const m = document.createElement('div');
-    m.className = 'marca-v';
-    m.style.top = pos + 'px';
-    m.style.width = i%5===0 ? 12 : 6;
-    document.getElementById('areaDesenho').appendChild(m);
-    if(i%2===0 || i===metros){
-      const n = document.createElement('div');
-      n.className = 'num-trena';
-      n.textContent = i;
-      n.style.left = '5px';
-      n.style.top = pos - 7 + 'px';
-      document.getElementById('areaDesenho').appendChild(n);
+function trocarOrientacao(el, tipo, orientacao, medida) {
+  el.className = '';
+  el.style.width = '';
+  el.style.height = '';
+  if (tipo === 'porta') {
+    if (orientacao === 'horizontal') {
+      el.className = 'porta-h';
+      el.style.width = (medida * ESCALA) + 'px';
+      el.style.height = '6px';
+    } else {
+      el.className = 'porta-v';
+      el.style.height = (medida * ESCALA) + 'px';
+      el.style.width = '6px';
+    }
+  } else {
+    if (orientacao === 'horizontal') {
+      el.className = 'janela-h';
+      el.style.width = (medida * ESCALA) + 'px';
+      el.style.height = '6px';
+    } else {
+      el.className = 'janela-v';
+      el.style.height = (medida * ESCALA) + 'px';
+      el.style.width = '6px';
     }
   }
+  el.innerHTML = `${medida.toFixed(2)}m`;
 }
 
-function clicarTrena(el) {
-  if (trenaClicada) trenaClicada.classList.remove('clicada');
-  trenaClicada = el;
-  el.classList.add('clicada');
-  const nome = el.dataset.nome;
-  const medida = el.dataset.medida;
-  const espaco = document.getElementById('espacoCaixa');
-  espaco.innerHTML = `
-    <div class="caixa-medida">
-      <button onclick="fecharCaixinha()">✖ Esconder</button>
-      <label>📏 Medida selecionada:</label>
-      <input type="text" readonly value="${nome}: ${medida}">
-    </div>
-  `;
-}
+function desenharComodo() {
+  const nome = document.getElementById('nome').value || 'Cômodo';
+  const larg = parseFloat(document.getElementById('larg').value);
+  const comp = parseFloat(document.getElementById('comp').value);
+  const posX = parseFloat(document.getElementById('posX').value);
+  const posY = parseFloat(document.getElementById('posY').value);
 
-function fecharCaixinha() {
-  document.getElementById('espacoCaixa').innerHTML = '';
-  if (trenaClicada) trenaClicada.classList.remove('clicada');
-  trenaClicada = null;
-}
-
-function adicionarMedida(x, y, texto) {
-  const el = document.createElement('div');
-  el.className = 'medida-lado';
-  el.style.left = x + 'px';
-  el.style.top = y + 'px';
-  el.textContent = texto;
-  document.getElementById('areaDesenho').appendChild(el);
-}
-
-function criarParte() {
-  if(!document.getElementById('quadrado-total')){
-    alert('Primeiro crie a Área Total 10×10!');
+  if (larg <= 0 || comp <= 0) {
+    mostrarAviso('⚠️ Largura e Comprimento devem ser maiores que 0!', true);
     return;
   }
-  document.querySelectorAll('.area-parte, .linha-altura, .ponto-topo, .medida-int').forEach(e=>e.remove());
-  const larg = parseFloat(document.getElementById('largura').value);
-  const comp = parseFloat(document.getElementById('comprimento').value);
-  const alt = parseFloat(document.getElementById('altura').value);
-  const distF = parseFloat(document.getElementById('distFrente').value);
-  const tamTotal = TOTAL * ESCALA;
-  const px = X0 + (TOTAL - comp) * ESCALA / 2;
-  const py = Y0 + tamTotal - distF * ESCALA - larg * ESCALA;
-  const parte = document.createElement('div');
-  parte.className = 'area-parte';
-  parte.style.left = px + 'px';
-  parte.style.top = py + 'px';
-  parte.style.width = comp * ESCALA + 'px';
-  parte.style.height = larg * ESCALA + 'px';
-  document.getElementById('areaDesenho').appendChild(parte);
-  addMedidaInt(px + comp*ESCALA/2 - 50, py - 25, `${comp.toFixed(2)}m × ${larg.toFixed(2)}m`);
+  if (posX < 0 || posY < 0) {
+    mostrarAviso('⚠️ Posição não pode ser negativa!', true);
+    return;
+  }
+  if (posX + larg > TOTAL) {
+    mostrarAviso(`❌ Fora da área! Esq(${posX.toFixed(2)}) + Larg(${larg.toFixed(2)}) = ${(posX+larg).toFixed(2)} > 10,00`, true);
+    return;
+  }
+  if (posY + comp > TOTAL) {
+    mostrarAviso(`❌ Fora da área! Bai(${posY.toFixed(2)}) + Comp(${comp.toFixed(2)}) = ${(posY+comp).toFixed(2)} > 10,00`, true);
+    return;
+  }
 
-  const cantos = [
-    {x: px, y: py},
-    {x: px + comp*ESCALA, y: py},
-    {x: px + comp*ESCALA, y: py + larg*ESCALA},
-    {x: px, y: py + larg*ESCALA}
-  ];
-  cantos.forEach((p, i) => {
-    const topoY = p.y - alt * ESCALA;
-    const linha = document.createElement('div');
-    linha.className = 'linha-altura';
-    linha.style.left = p.x + 'px';
-    linha.style.top = topoY + 'px';
-    linha.style.width = '4px';
-    linha.style.height = p.y - topoY + 'px';
-    document.getElementById('areaDesenho').appendChild(linha);
-    const pt = document.createElement('div');
-    pt.className = 'ponto-topo';
-    pt.style.left = p.x - 6 + 'px';
-    pt.style.top = topoY - 6 + 'px';
-    document.getElementById('areaDesenho').appendChild(pt);
-    if(i === 0){
-      addMedidaAlt(p.x + 12, (p.y + topoY)/2 - 10, `↑ ${alt.toFixed(2)}m`);
+  const cor = cores[corIndex++ % cores.length];
+  const caixa = document.getElementById('caixa');
+
+  const w = larg * ESCALA;
+  const h = comp * ESCALA;
+  const x = posX * ESCALA;
+  const y = posY * ESCALA;
+
+  const comodo = document.createElement('div');
+  comodo.className = 'comodo';
+  comodo.style.left = x + 'px';
+  comodo.style.top = y + 'px';
+  comodo.style.width = w + 'px';
+  comodo.style.height = h + 'px';
+  comodo.style.borderColor = cor;
+  comodo.style.backgroundColor = cor + '15';
+  comodo.style.color = cor;
+  comodo.innerHTML = nome;
+  comodo.dataset.larg = larg;
+  comodo.dataset.comp = comp;
+  comodo.dataset.x = posX;
+  comodo.dataset.y = posY;
+
+  comodo.innerHTML += `
+    <div class="medida medida-larg" style="left:50%;top:100%;transform:translateX(-50%);margin-top:3px;">${larg.toFixed(2)}m</div>
+    <div class="medida medida-comp" style="left:100%;top:50%;transform:translateY(-50%);margin-left:3px;">${comp.toFixed(2)}m</div>
+  `;
+
+  listaComodos.push({ x: posX, y: posY, larg: larg, comp: comp, nome: nome, elemento: comodo });
+  caixa.appendChild(comodo);
+
+  comodo.addEventListener('mousedown', (e) => iniciarArrasto(e, comodo, 'comodo'));
+  comodo.addEventListener('touchstart', (e) => iniciarArrasto(e, comodo, 'comodo'));
+
+  mostrarAviso(`✅ ${nome} desenhado! Total: ${listaComodos.length} cômodo(s)`, false);
+}
+
+function criarPorta() {
+  const larg = parseFloat(document.getElementById('portaLarg').value);
+  if (!larg || larg <= 0) { mostrarAviso('⚠️ Digite uma medida!', true); return; }
+  const caixa = document.getElementById('caixa');
+  const porta = document.createElement('div');
+  porta.className = 'porta-h';
+  porta.style.left = '50px';
+  porta.style.top = '50px';
+  porta.style.width = (larg * ESCALA) + 'px';
+  porta.innerHTML = `${larg.toFixed(2)}m`;
+  porta.dataset.tipo = 'porta';
+  porta.dataset.medida = larg;
+  porta.dataset.orientacao = 'horizontal';
+  caixa.appendChild(porta);
+  porta.addEventListener('mousedown', (e) => iniciarArrasto(e, porta, 'elemento'));
+  porta.addEventListener('touchstart', (e) => iniciarArrasto(e, porta, 'elemento'));
+  mostrarAviso('🚪 Porta criada! Arraste para a parede!', false);
+}
+
+function criarJanela() {
+  const larg = parseFloat(document.getElementById('janelaLarg').value);
+  if (!larg || larg <= 0) { mostrarAviso('⚠️ Digite uma medida!', true); return; }
+  const caixa = document.getElementById('caixa');
+  const janela = document.createElement('div');
+  janela.className = 'janela-h';
+  janela.style.left = '120px';
+  janela.style.top = '80px';
+  janela.style.width = (larg * ESCALA) + 'px';
+  janela.innerHTML = `${larg.toFixed(2)}m`;
+  janela.dataset.tipo = 'janela';
+  janela.dataset.medida = larg;
+  janela.dataset.orientacao = 'horizontal';
+  caixa.appendChild(janela);
+  janela.addEventListener('mousedown', (e) => iniciarArrasto(e, janela, 'elemento'));
+  janela.addEventListener('touchstart', (e) => iniciarArrasto(e, janela, 'elemento'));
+  mostrarAviso('🪟 Janela criada! Arraste para a parede!', false);
+}
+
+function iniciarArrasto(e, el, tipo) {
+  e.preventDefault();
+  arrastando = { el, tipo };
+  el.classList.add('arrastando');
+  const rect = el.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  offsetX = clientX - rect.left;
+  offsetY = clientY - rect.top;
+}
+
+document.addEventListener('mousemove', mover);
+document.addEventListener('touchmove', mover);
+
+function mover(e) {
+  if (!arrastando) return;
+  e.preventDefault();
+  const caixa = document.getElementById('caixa');
+  const rect = caixa.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  arrastando.el.style.left = Math.max(0, Math.min(clientX - rect.left - offsetX, caixa.offsetWidth - arrastando.el.offsetWidth)) + 'px';
+  arrastando.el.style.top = Math.max(0, Math.min(clientY - rect.top - offsetY, caixa.offsetHeight - arrastando.el.offsetHeight)) + 'px';
+}
+
+document.addEventListener('mouseup', pararArrasto);
+document.addEventListener('touchend', pararArrasto);
+
+function pararArrasto() {
+  if (!arrastando) return;
+  const el = arrastando.el;
+  const tipo = arrastando.tipo;
+  el.classList.remove('arrastando');
+  if (tipo === 'comodo') processarComodo(el);
+  else processarElemento(el);
+  arrastando = null;
+}
+
+function processarComodo(el) {
+  const wOriginal = parseFloat(el.dataset.larg);
+  const hOriginal = parseFloat(el.dataset.comp);
+  let px = parseFloat(el.style.left) / ESCALA;
+  let py = parseFloat(el.style.top) / ESCALA;
+
+  if (px < 0) px = 0;
+  if (py < 0) py = 0;
+  if (px + wOriginal > TOTAL) px = TOTAL - wOriginal;
+  if (py + hOriginal > TOTAL) py = TOTAL - hOriginal;
+
+  el.style.left = (px * ESCALA) + 'px';
+  el.style.top = (py * ESCALA) + 'px';
+
+  document.getElementById('posX').value = px.toFixed(2);
+  document.getElementById('posY').value = py.toFixed(2);
+
+  const idx = listaComodos.findIndex(c => c.elemento === el);
+  if (idx !== -1) {
+    listaComodos[idx].x = px;
+    listaComodos[idx].y = py;
+  }
+  document.getElementById('status').innerHTML = `✅ Posição: Esq ${px.toFixed(2)}m, Bai ${py.toFixed(2)}m`;
+}
+
+function processarElemento(el) {
+  const px = parseFloat(el.style.left) / ESCALA;
+  const py = parseFloat(el.style.top) / ESCALA;
+  const medida = parseFloat(el.dataset.medida);
+  const tipo = el.dataset.tipo;
+  const encaixe = encaixarNaParede(px, py);
+  if (encaixe.encaixou) {
+    trocarOrientacao(el, tipo, encaixe.orientacao, medida);
+    if (encaixe.x !== null) el.style.left = (encaixe.x * ESCALA) + 'px';
+    if (encaixe.y !== null) el.style.top = (encaixe.y * ESCALA) + 'px';
+    el.dataset.orientacao = encaixe.orientacao;
+    mostrarAviso(encaixe.mensagem, false);
+  } else {
+    if (el.dataset.orientacao !== 'horizontal') {
+      trocarOrientacao(el, tipo, 'horizontal', medida);
+      el.dataset.orientacao = 'horizontal';
     }
-  });
+    document.getElementById('status').innerHTML = `✅ ${tipo === 'porta' ? 'Porta' : 'Janela'} posicionada`;
+  }
 }
 
-function addMedidaInt(x, y, texto) {
-  const el = document.createElement('div');
-  el.className = 'medida-int';
-  el.style.left = x + 'px';
-  el.style.top = y + 'px';
-  el.textContent = texto;
-  document.getElementById('areaDesenho').appendChild(el);
-}
-
-function addMedidaAlt(x, y, texto) {
-  const el = document.createElement('div');
-  el.className = 'medida-int medida-alt';
-  el.style.left = x + 'px';
-  el.style.top = y + 'px';
-  el.textContent = texto;
-  document.getElementById('areaDesenho').appendChild(el);
-}
-
-function limparTudo() {
-  document.getElementById('areaDesenho').innerHTML = '';
-  fecharCaixinha();
+function limpar() {
+  const caixa = document.getElementById('caixa');
+  caixa.innerHTML = `
+    <div style="position:absolute;top:5px;left:50%;transform:translateX(-50%);font-size:13px;font-weight:bold;color:#d32f2f;">📐 ÁREA TOTAL — 10,00m × 10,00m</div>
+    <div class="aviso" id="aviso"></div>
+  `;
+  listaComodos = [];
+  corIndex = 0;
+  document.getElementById('status').innerHTML = '👉 Limpo! Comece de novo.';
 }
 </script>
 
